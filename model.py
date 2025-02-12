@@ -34,7 +34,7 @@ def predict_single(params: jnp.array, x: jnp.array) -> jnp.array:
         return jnp.tanh(z)
     # def sigmoid(z: jnp.array):
     #     return 1/(1 + jnp.exp(-z))
-    # def selu(z: jnp.array):
+    # def silu(z: jnp.array):
     #     return z * sigmoid(z)
     
     h = x
