@@ -9,7 +9,7 @@ In International Conference on Artificial Intelligence and Statistics (pp. 2197-
 As documented in the reference, the advantage of this formulation is that it avoids the need to explicitly use
 invertible neural networks. Rather, "invertibility" is enforced through a reconstruction penalty.
 
-The code here is written in fairly plain JAX and utilizes a simple MLP, which is trained using just SGD. 
+The code here is written in pure JAX and utilizes a simple MLP, which is trained using just SGD. 
 Despite this, we are able to generate non-trivial results, albeit after substantial hyperparameter tuning.
 For many choices of network settings and hyperparameters, the training process is unstable.
 
