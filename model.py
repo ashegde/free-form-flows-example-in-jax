@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 
+
 def random_layer_params(
         key: jax.random.key,
         in_dim: int,
@@ -10,16 +11,21 @@ def random_layer_params(
     
     w_key, b_key = jax.random.split(key, 2)
     return  (
-      jnp.sqrt(2/(in_dim)) * jax.random.normal(
+        jax.random.uniform(
            w_key,
-           shape=(in_dim, out_dim),
+           shape=(out_dim, in_dim),
+           minval=-jnp.sqrt(1/in_dim),
+           maxval=jnp.sqrt(1/in_dim)
         ),
-      b_scale * jax.random.normal(
+      b_scale * jax.random.uniform(
            b_key,
            shape=(out_dim,),
+           minval=-jnp.sqrt(1/in_dim),
+           maxval=jnp.sqrt(1/in_dim),
         ),
     )
 
+# Initialize all layers for a fully-connected neural network with sizes "sizes"
 def init_network_params(key: jax.random.key, layer_sizes: list[int], b_scale: int = 0.0) -> list[int]:
     keys = jax.random.split(key, len(layer_sizes))
     return [
@@ -28,20 +34,25 @@ def init_network_params(key: jax.random.key, layer_sizes: list[int], b_scale: in
     ]
 
 def predict_single(params: jnp.array, x: jnp.array) -> jnp.array:
-    # def relu(z: jnp.array):
-    #     return jnp.maximum(0, z)
+    def relu(z: jnp.array):
+        return jnp.maximum(0, z)
     def tanh(z: jnp.array):
         return jnp.tanh(z)
-    # def sigmoid(z: jnp.array):
-    #     return 1/(1 + jnp.exp(-z))
-    # def selu(z: jnp.array):
-    #     return z * sigmoid(z)
+    def sigmoid(z: jnp.array):
+        return 1/(1 + jnp.exp(-z))
+    def silu(z: jnp.array):
+        return z * sigmoid(z)
+    def elu(z: jnp.array, alpha: float = 1.0):
+        return jnp.where(z > 0, z, alpha*(jnp.exp(z)-1))
     
     h = x
-    for (w,b) in params[:-1]:
-        h = jnp.dot(h,w) + b
-        # h = relu(h)  
-        h = tanh(h)
+    readin_w, readin_b = params[0]
+    u = jnp.dot(readin_w, h) + readin_b
+    h = elu(u)
+
+    for (w,b) in params[1:-1]:
+        u = jnp.dot(w, h) + b
+        h = elu(u)
     
-    final_w, final_b = params[-1]
-    return x + jnp.dot(h, final_w) + final_b
+    readout_w, readout_b = params[-1]
+    return jnp.dot(readout_w, h) + readout_b
